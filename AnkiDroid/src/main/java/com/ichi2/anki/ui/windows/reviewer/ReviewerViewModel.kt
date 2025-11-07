@@ -361,6 +361,7 @@ class ReviewerViewModel(
                 TR.undoActionUndone(changes.operation)
             }
         actionFeedbackFlow.emit(message)
+        updateCurrentCard()
     }
 
     private suspend fun redo() {
