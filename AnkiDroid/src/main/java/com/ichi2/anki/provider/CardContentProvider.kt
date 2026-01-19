@@ -109,6 +109,10 @@ class CardContentProvider : ContentProvider() {
         private const val DECK_SELECTED = 4001
         private const val DECKS_ID = 4002
         private const val MEDIA = 5000
+
+        // Card endpoints
+        private const val CARDS = 1100 // Search cards with query syntax
+        private const val CARDS_ID = 1101 // Direct card access by ID
         private val sUriMatcher = UriMatcher(UriMatcher.NO_MATCH)
 
         /**
@@ -160,6 +164,8 @@ class CardContentProvider : ContentProvider() {
             addUri("decks/#", DECKS_ID)
             addUri("selected_deck/", DECK_SELECTED)
             addUri("media", MEDIA)
+            addUri("cards", CARDS)
+            addUri("cards/#", CARDS_ID)
 
             for (idx in sDefaultNoteProjectionDBAccess.indices) {
                 if (sDefaultNoteProjectionDBAccess[idx] == FlashCardsContract.Note._ID) {
@@ -191,6 +197,8 @@ class CardContentProvider : ContentProvider() {
             NOTE_TYPES_ID_TEMPLATES_ID -> FlashCardsContract.CardTemplate.CONTENT_ITEM_TYPE
             SCHEDULE -> FlashCardsContract.ReviewInfo.CONTENT_TYPE
             DECKS, DECK_SELECTED, DECKS_ID -> FlashCardsContract.Deck.CONTENT_TYPE
+            CARDS -> FlashCardsContract.Card.CONTENT_TYPE
+            CARDS_ID -> FlashCardsContract.Card.CONTENT_ITEM_TYPE
             else -> throw IllegalArgumentException("uri $uri is not supported")
         }
     }
@@ -404,6 +412,41 @@ class CardContentProvider : ContentProvider() {
                 val rv = MatrixCursor(columns, 1)
                 val counts = JSONArray(listOf(col.sched.counts()))
                 addDeckToCursor(id, name, counts, rv, col, columns)
+                rv
+            }
+            CARDS -> {
+                // Search for cards using Anki browser syntax
+                val columns = projection ?: FlashCardsContract.Card.DEFAULT_PROJECTION
+                val query = selection ?: ""
+                val cardIds = col.findCards(query)
+
+                // Fast path: Only if _id is requested
+                val onlyRequestingId = columns.size == 1 && columns[0] == FlashCardsContract.Card.CARD_ID
+
+                if (onlyRequestingId) {
+                    // Return IDs without fetching card objects
+                    val rv = MatrixCursor(columns, cardIds.size)
+                    for (cardId in cardIds) {
+                        rv.newRow().add(cardId)
+                    }
+                    rv
+                } else {
+                    // Get all requested fields
+                    val rv = MatrixCursor(columns, cardIds.size)
+                    for (cardId in cardIds) {
+                        val card = col.getCard(cardId)
+                        addCardToCursor(card, rv, col, columns)
+                    }
+                    rv
+                }
+            }
+            CARDS_ID -> {
+                // Direct access to specific card by ID
+                val cardId = uri.pathSegments[1].toLong()
+                val columns = projection ?: FlashCardsContract.Card.DEFAULT_PROJECTION
+                val rv = MatrixCursor(columns, 1)
+                val card = col.getCard(cardId)
+                addCardToCursor(card, rv, col, columns)
                 rv
             }
             else -> throw IllegalArgumentException("uri $uri is not supported")
@@ -1116,6 +1159,7 @@ class CardContentProvider : ContentProvider() {
         val rb = rv.newRow()
         for (column in columns) {
             when (column) {
+                FlashCardsContract.Card.CARD_ID -> rb.add(currentCard.id)
                 FlashCardsContract.Card.NOTE_ID -> rb.add(currentCard.nid)
                 FlashCardsContract.Card.CARD_ORD -> rb.add(currentCard.ord)
                 FlashCardsContract.Card.CARD_NAME -> rb.add(cardName)
@@ -1125,6 +1169,10 @@ class CardContentProvider : ContentProvider() {
                 FlashCardsContract.Card.QUESTION_SIMPLE -> rb.add(currentCard.renderOutput(col).questionText)
                 FlashCardsContract.Card.ANSWER_SIMPLE -> rb.add(currentCard.renderOutput(col, false).answerText)
                 FlashCardsContract.Card.ANSWER_PURE -> rb.add(currentCard.pureAnswer(col))
+                FlashCardsContract.Card.DUE -> rb.add(currentCard.due.toLong())
+                FlashCardsContract.Card.INTERVAL -> rb.add(currentCard.ivl.toLong())
+                FlashCardsContract.Card.EASE_FACTOR -> rb.add(currentCard.factor / 1000.0f)
+                FlashCardsContract.Card.REVIEWS -> rb.add(currentCard.reps)
                 else -> throw UnsupportedOperationException("Queue \"$column\" is unknown")
             }
         }
