@@ -576,6 +576,12 @@ public object FlashCardsContract {
      */
     public object Card {
         /**
+         * This is the ID of the card in the Anki database.
+         */
+        @Suppress("ConstPropertyName", "ktlint:standard:backing-property-naming")
+        public const val _ID: String = "_id"
+
+        /**
          * This is the ID of the note that this card belongs to (i.e. [Note._ID]).
          */
         public const val NOTE_ID: String = "note_id"
@@ -622,9 +628,37 @@ public object FlashCardsContract {
          */
         public const val ANSWER_PURE: String = "answer_pure"
 
+        /**
+         * Due date for this card (day for review, timestamp for learning).
+         */
+        public const val DUE: String = "due"
+
+        /**
+         * Interval in days since last review.
+         */
+        public const val INTERVAL: String = "interval"
+
+        /**
+         * Ease factor (0-2500, divide by 1000 for actual ease).
+         */
+        public const val EASE_FACTOR: String = "ease_factor"
+
+        /**
+         * Number of reviews this card has undergone.
+         */
+        public const val REVIEWS: String = "reviews"
+
+        /**
+         * The content:// style URI for cards. Can be used to search for cards or access specific cards.
+         * For examples on how to use the URI for queries see class description.
+         */
+        @JvmField // required for Java API
+        public val CONTENT_URI: Uri = Uri.withAppendedPath(AUTHORITY_URI, "cards")
+
         @JvmField // required for Java API
         public val DEFAULT_PROJECTION: Array<String> =
             arrayOf(
+                _ID,
                 NOTE_ID,
                 CARD_ORD,
                 CARD_NAME,
