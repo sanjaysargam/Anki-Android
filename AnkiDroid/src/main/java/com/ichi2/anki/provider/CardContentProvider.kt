@@ -421,7 +421,7 @@ class CardContentProvider : ContentProvider() {
                 val cardIds = col.findCards(query)
 
                 // Fast path: Only if _id is requested
-                val onlyRequestingId = columns.size == 1 && columns[0] == FlashCardsContract.Card.CARD_ID
+                val onlyRequestingId = columns.size == 1 && columns[0] == FlashCardsContract.Card._ID
 
                 if (onlyRequestingId) {
                     // Return IDs without fetching card objects
@@ -1159,7 +1159,7 @@ class CardContentProvider : ContentProvider() {
         val rb = rv.newRow()
         for (column in columns) {
             when (column) {
-                FlashCardsContract.Card.CARD_ID -> rb.add(currentCard.id)
+                FlashCardsContract.Card._ID -> rb.add(currentCard.id)
                 FlashCardsContract.Card.NOTE_ID -> rb.add(currentCard.nid)
                 FlashCardsContract.Card.CARD_ORD -> rb.add(currentCard.ord)
                 FlashCardsContract.Card.CARD_NAME -> rb.add(cardName)

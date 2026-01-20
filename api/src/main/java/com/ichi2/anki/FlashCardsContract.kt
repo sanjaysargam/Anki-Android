@@ -578,7 +578,8 @@ public object FlashCardsContract {
         /**
          * This is the ID of the card in the Anki database.
          */
-        public const val CARD_ID: String = "_id"
+        @Suppress("ConstPropertyName", "ktlint:standard:backing-property-naming")
+        public const val _ID: String = "_id"
 
         /**
          * This is the ID of the note that this card belongs to (i.e. [Note._ID]).
@@ -657,7 +658,7 @@ public object FlashCardsContract {
         @JvmField // required for Java API
         public val DEFAULT_PROJECTION: Array<String> =
             arrayOf(
-                CARD_ID,
+                _ID,
                 NOTE_ID,
                 CARD_ORD,
                 CARD_NAME,
