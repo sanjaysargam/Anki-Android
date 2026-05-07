@@ -152,10 +152,15 @@ class ChangeNoteTypeDialog : AnalyticsDialogFragment(R.layout.dialog_change_note
         }
     }
 
+    private fun updateSaveButton(binding: DialogChangeNoteTypeBinding) {
+        binding.btnSave.isEnabled = viewModel.hasChanges()
+    }
+
     private fun setupChangeNoteTypeDialog(binding: DialogChangeNoteTypeBinding) {
         Timber.d("setting up dialog")
         setupNoteTypeSpinner(binding)
         setupViewPagerAndTabs(binding)
+        updateSaveButton(binding)
     }
 
     private fun setupNoteTypeSpinner(binding: DialogChangeNoteTypeBinding) {
@@ -168,6 +173,7 @@ class ChangeNoteTypeDialog : AnalyticsDialogFragment(R.layout.dialog_change_note
             onItemSelectedListener =
                 BasicItemSelectedListener { position, id: NoteTypeId ->
                     viewModel.setOutputNoteTypeId(id)
+                    updateSaveButton(binding)
                 }
         }
     }
@@ -410,6 +416,10 @@ class ChangeNoteTypeDialog : AnalyticsDialogFragment(R.layout.dialog_change_note
                                         SelectedIndex.from(position)
                                     }
                                 viewModel.updateFieldMapping(oldIndex, newMapping)
+                                (requireParentFragment() as ChangeNoteTypeDialog)
+                                    .updateSaveButton(
+                                        DialogChangeNoteTypeBinding.bind(requireParentFragment().requireView()),
+                                    )
                             }
                     }
 
@@ -601,6 +611,10 @@ class ChangeNoteTypeDialog : AnalyticsDialogFragment(R.layout.dialog_change_note
                                         SelectedIndex.from(position)
                                     }
                                 viewModel.updateTemplateMapping(outputTemplateIndex = spinnerIndex, newMapping)
+                                (requireParentFragment() as ChangeNoteTypeDialog)
+                                    .updateSaveButton(
+                                        DialogChangeNoteTypeBinding.bind(requireParentFragment().requireView()),
+                                    )
                             }
                     }
 

@@ -301,6 +301,22 @@ class ChangeNoteTypeViewModel(
     }
 
     /**
+     * Returns whether there are any pending changes in Change Note Type.
+     *
+     * Save button should only be enabled when:
+     * - note type is changed
+     * - field mapping is changed
+     * - template mapping is changed
+     *
+     * If everything is same as the initial/default state,
+     * then there is nothing to save.
+     */
+    fun hasChanges(): Boolean =
+        inputNoteType.id != outputNoteType.id ||
+            fieldChangeMap != rebuildFieldMap(outputNoteType) ||
+            templateChangeMap != rebuildTemplateMap(outputNoteType)
+
+    /**
      * Performs the [changeNoteTypeOfNotes] operation
      *
      * @return the number of notes affected
